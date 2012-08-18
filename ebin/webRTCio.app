@@ -1,0 +1,10 @@
+{application,webRTCio,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib,crypto,cowboy,compiler,lager,
+                             syntax_tools]},
+              {mod,{webRTCio_app,[]}},
+              {env,[]},
+              {modules,[webRTCio_app,webRTCio_handler,webRTCio_server,
+                        webRTCio_sup]}]}.

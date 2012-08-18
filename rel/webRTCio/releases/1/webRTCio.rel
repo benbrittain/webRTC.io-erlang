@@ -1,0 +1,22 @@
+%% rel generated at {2012,8,18} {12,33,25}
+{release,{"webRTCio","1"},
+         {erts,"5.9.1"},
+         [{kernel,"2.15.1"},
+          {stdlib,"1.18.1"},
+          {sasl,"2.2.1"},
+          {cowboy,"0.6.1"},
+          {crypto,"2.1"},
+          {compiler,"4.8.1"},
+          {syntax_tools,"1.6.8"},
+          {lager,"1.2.0"},
+          {webRTCio,"1"},
+          {asn1,"1.7",load},
+          {eunit,"2.2.2",load},
+          {hipe,"3.9.1",load},
+          {inets,"5.9",load},
+          {json,"0.0.2",load},
+          {public_key,"0.15",load},
+          {runtime_tools,"1.8.8",load},
+          {ssl,"5.0.1",load},
+          {tools,"2.6.7",load}]}.
+

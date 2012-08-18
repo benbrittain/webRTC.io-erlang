@@ -1,0 +1,13 @@
+%% -*- erlang -*-
+{"5.0.1",
+ [
+  {"5.0", [{restart_application, ssl}]},
+  {<<"4\\.*">>, [{restart_application, ssl}]},
+  {<<"3\\.*">>, [{restart_application, ssl}]}
+ ], 
+ [
+  {"5.0", [{restart_application, ssl}]},
+  {<<"4\\.*">>, [{restart_application, ssl}]},
+  {<<"3\\.*">>, [{restart_application, ssl}]}
+ ]}.
+
