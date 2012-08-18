@@ -3,9 +3,9 @@
 -behaviour(cowboy_http_websocket_handler).
 -export([init/3, handle/2, terminate/2]).
 -export([
-    websocket_init/3, websocket_handle/3,
-    websocket_info/3, websocket_terminate/3
-]).
+        websocket_init/3, websocket_handle/3,
+        websocket_info/3, websocket_terminate/3
+    ]).
 
 
 init({tcp, http}, Req, _Opts) ->
@@ -13,10 +13,12 @@ init({tcp, http}, Req, _Opts) ->
     {upgrade, protocol, cowboy_http_websocket}.
 
 
-handle(Req, State) ->
-    lager:debug("Request not expected: ~p", [Req]),
-    {ok, Req2} = cowboy_http_req:reply(404, [{'Content-Type', <<"text/html">>}]),
-    {ok, Req2, State}.
+handle(Req, State) ->  
+    lager:debug("Unexpected request: ~p", [Req]),  
+    {ok, Req2} = cowboy_http_req:reply(404, [  
+            {'Content-Type', <<"text/html">>}  
+        ]),  
+    {ok, Req2, State}.  
 
 terminate(_Req, _State) ->
     lager:debug("terminate client"),
@@ -24,15 +26,12 @@ terminate(_Req, _State) ->
     ok.
 
 websocket_init(_Any, Req, []) ->
-%    lager:debug("New client"),
-%    webRTCio_server:register(self()),
     Req2 = cowboy_http_req:compact(Req),
     {ok, Req2, 0, hibernate}.
 
+%% Handle messoges being sent to the process
 websocket_handle({text, Msg}, Req, State) ->
-%%    lager:debug("Msg: ~p", [Msg]),
     JSON = json:decode(Msg),
- %%   lager:debug("JSON Msg: ~p", [JSON]),
     case JSON of
         {ok,{[{<<"eventName">>,<<"join_room">>}, {<<"data">>, {[{<<"room">>, Room}]}} ]}} ->
             lager:debug("New client"),
@@ -54,37 +53,49 @@ websocket_handle({text, Msg}, Req, State) ->
     end,
     {ok, Req, State};
 
-
 websocket_handle(Any, Req, State) ->
     lager:debug("Any: ~p", [Any]),
     {ok, Req, State}.
 
+%% send messages back to the client
 websocket_info({new_peer_connected, Pid}, Req, State) ->
     lager:debug("PID new_peer_connected ~p", [Pid]),
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"new_peer_connected">>},{<<"data">>, {[ {<<"socketId">>, list_to_binary(pid_to_list(Pid))}]}}]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info({receive_ice_candidate, Label, Candidate, Pid}, Req, State) ->
     lager:debug("receive_ice_candidate ~p", [Pid]),
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"receive_ice_candidate">>}, {<<"data">>, {[{<<"label">>, Label}, {<<"candidate">>, Candidate},{<<"socketId">>, list_to_binary(pid_to_list(Pid))}]}} ]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
+websocket_info({remove_peer_connected, Pid}, Req, State) ->
+    lager:debug("remove_peer_connected ~p", [Pid]),
+    {ok, JSON} = json:encode({[{<<"eventName">>,<<"remove_peer_connected">>}, {<<"data">>, {[{<<"socketId">>, list_to_binary(pid_to_list(Pid))}]}} ]}),
+    {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info({receive_offer, SDP, Pid}, Req, State) ->
     lager:debug("receive_offer ~p", [Pid]),
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"receive_offer">>}, {<<"data">>, {[{<<"sdp">>, SDP},{<<"socketId">>, list_to_binary(pid_to_list(Pid))}]}} ]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info({receive_answer, SDP, Pid}, Req, State) ->
     lager:debug("receive_answer ~p", [Pid]),
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"receive_answer">>}, {<<"data">>, {[{<<"sdp">>, SDP},{<<"socketId">>, list_to_binary(pid_to_list(Pid))}]}} ]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info({get_peers, Connections}, Req, State) ->
     lager:debug("PID get_peers ~p", [Connections]),
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"get_peers">>}, {<<"data">>, {[{<<"connections">>, Connections}]}} ]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info({chatMsg, Pid, Msg, Room, Color}, Req, State) ->
     {ok, JSON} = json:encode({[{<<"eventName">>,<<"receive_chat_msg">>}, {<<"messages">>, Msg}, {<<"color">>, Color}]}),
     {reply, {text, JSON}, Req, State, hibernate};
+
 websocket_info(_Info, Req, State) ->
     {ok, Req, State, hibernate}.
 
+%% remove from rooms
 websocket_terminate(_Reason, _Req, State) ->
     lager:debug(State),
     lager:debug("websocket terminate client"),
